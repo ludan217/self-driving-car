@@ -3,13 +3,22 @@
  * 通过键盘 上下左右 方向键 控制汽车
  */
 class Controls{
-    constructor(){
+    constructor(type){
         this.forward = false;
         this.left = false;
         this.right = false;
         this.reverse = false;
 
-        this.#addKeyboardListeners();
+        switch(type){
+            case "KEYS":
+                this.#addKeyboardListeners();
+                break;
+            case "DUMMY":
+                this.forward = true;
+                break;
+        }
+
+        // this.#addKeyboardListeners();
     }
 
     #addKeyboardListeners(){

@@ -2,7 +2,7 @@
  * 汽车类
  */
 class Car{
-    constructor(x,y,width,height){
+    constructor(x,y,width,height,controlType,maxSpeed=3){
         this.x = x;
         this.y = y;
         this.width = width;
@@ -10,33 +10,45 @@ class Car{
 
         this.speed = 0;
         this.acceleration = 0.2;
-        this.maxSpeed = 3;
+        this.maxSpeed = maxSpeed;
         this.friction = 0.05;
         this.angle = 0;
         this.damaged = false;
 
-
-        this.sensor = new Sensor(this);
-        this.controls = new Controls();
+        // 其他汽车不需要灯光感知
+        if(controlType!="DUMMY"){
+            this.sensor = new Sensor(this);
+        }
+        // this.sensor = new Sensor(this);
+        this.controls = new Controls(controlType);
     }
 
     // 更新汽车状态
-    update(roadBorders){
+    update(roadBorders,traffic){
         if(!this.damaged){
             this.#move();
             this.polygon = this.#createPolygon();
-            this.damaged = this.#assessDamage(roadBorders);
+            this.damaged = this.#assessDamage(roadBorders,traffic);
+        }
+        if(this.sensor){
+            this.sensor.update(roadBorders,traffic);
         }
         
-        this.sensor.update(roadBorders);
+        
     }
 
-    #assessDamage(roadBorders){
+    #assessDamage(roadBorders,traffic){
         for(let i =0;i<roadBorders.length;i++){
             if(polysIntersect(this.polygon,roadBorders[i])){  // utils.js function
                 return true;
             }
         }
+        for(let i =0;i<traffic.length;i++){
+            if(polysIntersect(this.polygon,traffic[i].polygon)){  // utils.js function
+                return true;
+            }
+        }
+        return false;
     }
 
     #createPolygon(){
@@ -114,7 +126,7 @@ class Car{
     }
 
     // 将汽车画在画布上
-    draw(ctx){
+    draw(ctx,color){
         // ctx.save();
         // ctx.translate(this.x,this.y);
         // ctx.rotate(-this.angle);
@@ -133,7 +145,7 @@ class Car{
         if(this.damaged){
             ctx.fillStyle = "gray";
         }else{
-            ctx.fillStyle = "black";
+            ctx.fillStyle = color;
         }
 
         ctx.beginPath();
@@ -143,6 +155,9 @@ class Car{
         }
         ctx.fill();  // 等于注释掉的
 
-        this.sensor.draw(ctx);
+        if(this.sensor){
+            this.sensor.draw(ctx);
+        }
+        
     }
 }
